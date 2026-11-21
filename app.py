@@ -1,4 +1,5 @@
 import json
+import os
 import streamlit as st
 import streamlit.components.v1 as components
 import google.generativeai as genai
@@ -61,6 +62,12 @@ for key, default in {
     if key not in st.session_state:
         st.session_state[key] = default
 
+# Automatically fetch hidden API Key from Streamlit Secrets (no student input needed)
+try:
+    api_key = st.secrets.get("GEMINI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
+except Exception:
+    api_key = os.getenv("GEMINI_API_KEY", "")
+
 # 4. Browser Voice Output (AI Interviewer speaks aloud)
 def speak_text(text):
     clean_text = text.replace('"', '\\"').replace("\n", " ")
@@ -79,7 +86,6 @@ def speak_text(text):
 # 5. Sidebar: Step 1 (Choose Your Goal - Slide 4)
 with st.sidebar:
     st.markdown("### 🎯 Step 1: Choose Your Goal")
-    api_key = st.text_input("Gemini API Key (Optional for Live AI)", type="password")
     
     course = st.selectbox(
         "Stream / Course",
@@ -219,6 +225,3 @@ col_left, col_right = st.columns([1.4, 1])
 
 with col_left:
     st.markdown("### 🎙️ Step 2 & 3: Understand Role & Start Interview")
-    if st.button("✨ Analyze Role & Generate Interview Question", use_container_width=True):
-        data = analyze_and_generate(course, role, language, jd, api_key)
-        st.session_state.role_skills = data["skills"]
